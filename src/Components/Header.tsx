@@ -50,7 +50,7 @@ const Header: React.FC = () => {
 
         {/* Socials */}
         <div className="hidden md:flex space-x-3">
-          <a href="https://github.com/kinshukjainn" title="GitHub" className="hover:text-blue-400">
+          <a href="https://github.com/kinshukjainn/zeroleaks" title="GitHub" className="hover:text-blue-400">
             <FaGithub />
           </a>
           <a href="https://twitter.com/realkinshuk004" title="Twitter" className="hover:text-blue-400">
