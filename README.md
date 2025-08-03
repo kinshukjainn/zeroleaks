@@ -1,69 +1,169 @@
-# React + TypeScript + Vite
+## 📜 Overview
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**ZeroLeaks** is a highly secure, fully client-side password analysis and generation tool designed for developers, security researchers, and privacy-conscious users. It combines cryptographic best practices, entropy-based analysis, and data breach intelligence from [HaveIBeenPwned](https://haveibeenpwned.com/API/v3#PwnedPasswords) to help users understand and improve their password hygiene.
 
-Currently, two official plugins are available:
+Built with modern technologies including **React 19**, **TypeScript**, **TailwindCSS**, and **Vite**, it features a sleek, responsive UI, deep security insights, and real-time visualizations.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## ✨ Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🔍 Password Analyzer
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* Real-time strength evaluation (score 0–4)
+* Entropy-based complexity measurement
+* Crack time estimation for multiple attack scenarios
+* Suggestions and warnings for weak passwords
+* Checks if password appears in known data breaches via the Pwned Passwords API (SHA-1 k-Anonymity)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### 🔐 Secure Password Generator
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+* Generates military-grade random passwords (configurable length, symbols, digits, case)
+* Passphrase mode using word-based memorable phrases
+* Fisher-Yates shuffle for true randomness
+* Auto-analyzes strongest password from the batch
+
+### 📊 Security Visualization
+
+* Radar chart displaying:
+
+  * Password entropy
+  * Unique characters
+  * Crack resistance
+  * Reuse risk
+  * Overall score
+
+### 🧠 Local Password History
+
+* Non-reversible hashed history (SHA-1 hex digest simulation)
+* Tracks past scores, entropy, timestamps
+* Stored in memory for maximum privacy (not saved to disk)
+
+---
+
+## 🚀 Tech Stack
+
+| Layer           | Stack / Library                  |
+| --------------- | -------------------------------- |
+| Frontend        | React 19 + TypeScript            |
+| Styling         | TailwindCSS v4                   |
+| Routing         | React Router DOM v7              |
+| Icons           | React Icons (Remix, FontAwesome) |
+| Dev Environment | Vite 7 + ESLint + TSConfig       |
+| Password Check  | Native Web Crypto + Pwned API    |
+| Visualization   | HTML5 Canvas API                 |
+
+---
+
+## 🔧 Project Structure
+
+```
+zeroleaks/
+│
+├── components/              # Reusable UI logic & visualization
+├── hooks/                   # Custom hooks for state logic
+├── utils/                   # Password analysis, entropy, hash
+├── constants/               # Strength config mappings
+├── types/                   # TypeScript interfaces & types
+├── assets/                  # Static assets (if any)
+├── App.tsx                  # Main app logic & routing
+├── index.tsx                # Entry point
+└── styles/                  # Tailwind configuration
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🧪 How It Works
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 🔎 Entropy Calculation
+
+Entropy is computed based on character set size and password length:
+
+```ts
+entropy = log2(charsetSize ^ passwordLength)
 ```
+
+Character sets include lowercase, uppercase, digits, and symbols.
+
+### 🛡️ Score Mapping
+
+A simple scoring model evaluates passwords across:
+
+* Length ≥ 12 and ≥ 16
+* Mixed character types
+* High entropy
+* Low character repetition
+
+Mapped to 5 categories: `Critical`, `Weak`, `Moderate`, `Strong`, `Fortress`.
+
+### ☠️ Pwned Check (Privacy-Preserving)
+
+Your password is hashed with SHA-1 and only the first 5 characters of the hash are sent to the API. This ensures:
+
+* **Zero exposure** of the full password
+* **Client-side only** execution
+* **Full anonymity**
+
+---
+
+## 🖥️ Development
+
+### 📦 Install dependencies
+
+```bash
+npm install
+```
+
+### 🔧 Development server
+
+```bash
+npm run dev
+```
+
+### ⚙️ Production build
+
+```bash
+npm run build
+```
+
+### 🔍 Preview production
+
+```bash
+npm run preview
+```
+
+### 🧹 Lint your code
+
+```bash
+npm run lint
+```
+
+---
+
+## 📦 Dependencies
+
+* `react`, `react-dom` — UI logic
+* `react-router-dom` — Page navigation
+* `react-icons` — Iconography
+* `tailwindcss` — CSS utility engine
+* `@vitejs/plugin-react`, `vite` — Fast bundler
+* `typescript`, `eslint`, `typescript-eslint` — Type safety & linting
+* `@types/*` — Full IntelliSense and TS support
+
+---
+
+## 🔐 Privacy & Security
+
+* **Zero backend** — All logic is local in-browser
+* **No telemetry** — No analytics or tracking
+* **Ephemeral state** — No passwords or history saved to disk
+* **Quantum-resilient generation** (passphrase mode)
+
+---
+
+## 🧠 Ideal For
+
+* Developers creating secure login systems
+* Students learning about password security
+* Privacy-focused users wanting leak-free credentials
+* InfoSec professionals analyzing password health
