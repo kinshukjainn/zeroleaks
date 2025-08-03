@@ -1,32 +1,23 @@
 "use client"
-
-import type React from "react"
-import { useState, useEffect, useCallback, useMemo, useRef, useReducer, type JSX } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef, type SetStateAction } from "react"
 import {
   RiEyeLine,
   RiEyeOffLine,
-  RiShieldCheckLine,
   RiRefreshLine,
   RiFileCopyLine,
   RiCheckLine,
-  RiAlertLine,
-  RiLockLine,
   RiTerminalLine,
-  RiBarChartLine,
-  RiHistoryLine,
+  RiShieldCheckLine,
+  RiAlertLine,
   RiLoader4Line,
-  RiPassValidLine,
-  RiSettings3Line,
-  RiArticleLine,
-  RiShieldStarLine,
-  RiKeyLine,
-  RiDatabaseLine,
   RiCpuLine,
+  RiArticleLine,
+  RiStarLine,
   RiFlashlightLine,
 } from "react-icons/ri"
-import { FaCableCar } from "react-icons/fa6"
+import { motion } from "framer-motion"
 
-// TYPE DEFINITIONS
+// Types
 interface ZxcvbnResult {
   score: number
   entropy: number
@@ -40,100 +31,50 @@ interface ZxcvbnResult {
     warning: string
     suggestions: string[]
   }
-  sequence: Array<{
-    pattern: string
-    token: string
-    entropy: number
-  }>
 }
 
 interface GeneratedPassword {
   password: string
-  analysis?: ZxcvbnResult
+  analysis: ZxcvbnResult
   timestamp: number
   id: string
   strength: string
   score: number
+  category: "random" | "passphrase" | "memorable"
 }
 
-interface PasswordHistoryEntry {
-  passwordHash: string
-  score: number
-  timestamp: number
-  strength: string
-  entropy: number
-}
+type GenerationMode = "random" | "passphrase" | "memorable"
 
-interface AnalysisState {
-  status: "idle" | "loading" | "success" | "error"
-  analysis?: ZxcvbnResult
-  pwnedCount?: number
-  error?: string
-}
-
-type AnalysisAction =
-  | { type: "ANALYZE_START" }
-  | { type: "ANALYZE_SUCCESS"; payload: { analysis: ZxcvbnResult; pwnedCount: number } }
-  | { type: "ANALYZE_ERROR"; payload: { error: string } }
-  | { type: "RESET" }
-
-type TabType = "analyze" | "generate" | "history"
-type GenerationMode = "random" | "passphrase"
-
-interface StrengthConfig {
-  strength: string
-  color: string
-  bgColor: string
-  borderColor: string
-  description: string
-}
-
-interface MetricPoint {
-  label: string
-  value: number
-  color: string
-}
-
-// CONFIGURATION CONSTANTS
-const STRENGTH_CONFIG: Record<number, StrengthConfig> = {
+// Configuration
+const STRENGTH_CONFIG: Record<number, { strength: string; color: string; description: string }> = {
   4: {
-    strength: "Fortress",
-    color: "text-emerald-400",
-    bgColor: "bg-emerald-500/20",
-    borderColor: "border-emerald-500/30",
-    description: "Virtually uncrackable",
+    strength: "FORTRESS",
+    color: "text-green-400",
+    description: "Quantum-resistant security",
   },
   3: {
-    strength: "Strong",
-    color: "text-green-400",
-    bgColor: "bg-green-500/20",
-    borderColor: "border-green-500/30",
-    description: "Highly secure",
+    strength: "STRONG",
+    color: "text-cyan-400",
+    description: "Enterprise-grade protection",
   },
   2: {
-    strength: "Moderate",
+    strength: "MODERATE",
     color: "text-yellow-400",
-    bgColor: "bg-yellow-500/20",
-    borderColor: "border-yellow-500/30",
-    description: "Reasonably secure",
+    description: "Standard security level",
   },
   1: {
-    strength: "Weak",
+    strength: "WEAK",
     color: "text-orange-400",
-    bgColor: "bg-orange-500/20",
-    borderColor: "border-orange-500/30",
-    description: "Easily compromised",
+    description: "Vulnerable to attacks",
   },
   0: {
-    strength: "Critical",
+    strength: "CRITICAL",
     color: "text-red-400",
-    bgColor: "bg-red-500/20",
-    borderColor: "border-red-500/30",
-    description: "Immediately vulnerable",
+    description: "Immediate security risk",
   },
-} as const
+}
 
-// SIMPLIFIED ANALYSIS FUNCTIONS (Client-side only)
+// Analysis Functions
 const calculateEntropy = (password: string): number => {
   const charSets = {
     lowercase: /[a-z]/.test(password),
@@ -157,34 +98,53 @@ const analyzePassword = (password: string): ZxcvbnResult => {
   const hasNumbers = /[0-9]/.test(password)
   const hasSymbols = /[^a-zA-Z0-9]/.test(password)
   const uniqueChars = new Set(password).size
+  const hasSequential =
+    /(?:abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz|123|234|345|456|567|678|789|890)/i.test(
+      password,
+    )
+  const hasRepeated = /(.)\1{2,}/.test(password)
+  const hasCommonPatterns = /(password|123456|qwerty|admin|login|welcome)/i.test(password)
 
-  // Simple scoring algorithm
   let score = 0
+  if (length >= 8) score++
   if (length >= 12) score++
   if (length >= 16) score++
   if (hasLower && hasUpper && hasNumbers) score++
   if (hasSymbols && uniqueChars > length * 0.7) score++
-  if (entropy > 60) score++
-  score = Math.min(4, Math.max(0, score))
+  if (entropy > 50) score++
+  if (entropy > 70) score++
+
+  // Penalties
+  if (hasSequential) score = Math.max(0, score - 1)
+  if (hasRepeated) score = Math.max(0, score - 1)
+  if (hasCommonPatterns) score = Math.max(0, score - 2)
+
+  score = Math.min(4, Math.max(0, Math.floor(score / 2)))
 
   const suggestions: string[] = []
   let warning = ""
+
   if (length < 8) {
-    warning = "Password is too short"
-    suggestions.push("Use at least 8 characters")
+    warning = "Password is critically short"
+    suggestions.push("Use at least 12 characters for better security")
   }
-  if (!hasUpper) suggestions.push("Add uppercase letters")
-  if (!hasNumbers) suggestions.push("Add numbers")
-  if (!hasSymbols) suggestions.push("Add symbols")
-  if (uniqueChars < length * 0.5) suggestions.push("Avoid repeated characters")
+  if (length < 12) suggestions.push("Consider using 16+ characters")
+  if (!hasUpper) suggestions.push("Add uppercase letters (A-Z)")
+  if (!hasNumbers) suggestions.push("Include numbers (0-9)")
+  if (!hasSymbols) suggestions.push("Add special characters (!@#$%)")
+  if (uniqueChars < length * 0.5) suggestions.push("Reduce character repetition")
+  if (hasSequential) suggestions.push("Avoid sequential patterns (abc, 123)")
+  if (hasCommonPatterns) suggestions.push("Avoid common words and patterns")
 
   const crackTime = Math.pow(2, entropy / 2)
   const formatTime = (seconds: number): string => {
-    if (seconds < 60) return "less than a minute"
+    if (seconds < 1) return "instantly"
+    if (seconds < 60) return "< 1 minute"
     if (seconds < 3600) return `${Math.round(seconds / 60)} minutes`
     if (seconds < 86400) return `${Math.round(seconds / 3600)} hours`
     if (seconds < 31536000) return `${Math.round(seconds / 86400)} days`
-    return `${Math.round(seconds / 31536000)} years`
+    if (seconds < 31536000000) return `${Math.round(seconds / 31536000)} years`
+    return "centuries"
   }
 
   return {
@@ -196,15 +156,10 @@ const analyzePassword = (password: string): ZxcvbnResult => {
       online_throttling_100_per_hour: formatTime(crackTime / (100 / 3600)),
       online_no_throttling_10_per_second: formatTime(crackTime / 10),
     },
-    feedback: {
-      warning,
-      suggestions,
-    },
-    sequence: [],
+    feedback: { warning, suggestions },
   }
 }
 
-// PWNED PASSWORD CHECK
 const checkPwnedPassword = async (password: string): Promise<number> => {
   try {
     const encoder = new TextEncoder()
@@ -215,16 +170,12 @@ const checkPwnedPassword = async (password: string): Promise<number> => {
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("")
       .toUpperCase()
-
     const prefix = hashHex.substring(0, 5)
     const suffix = hashHex.substring(5)
-
     const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`)
     if (!response.ok) throw new Error("API unavailable")
-
     const text = await response.text()
     const lines = text.split("\r\n")
-
     for (const line of lines) {
       const [hashSuffix, count] = line.split(":")
       if (hashSuffix === suffix) {
@@ -232,22 +183,21 @@ const checkPwnedPassword = async (password: string): Promise<number> => {
       }
     }
     return 0
-  } catch (error) {
-    console.error("Pwned check failed:", error)
+  } catch {
     return -1
   }
 }
 
-// MAIN COMPONENT
-export default function PasswordAnalyzer(): JSX.Element {
+export default function TerminalPasswordGenerator() {
+  // Core State - Password starts completely empty
   const [password, setPassword] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [generatedPasswords, setGeneratedPasswords] = useState<GeneratedPassword[]>([])
-  const [passwordHistory, setPasswordHistory] = useState<PasswordHistoryEntry[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [visualMode, setVisualMode] = useState<boolean>(false)
-  const [showGeneratorConfig, setShowGeneratorConfig] = useState<boolean>(false)
-  const [activeTab, setActiveTab] = useState<TabType>("analyze")
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false)
+  const [pwnedCount, setPwnedCount] = useState<number | null>(null)
+  const [pwnedLoading, setPwnedLoading] = useState<boolean>(false)
+  const InputMotion = motion.input
 
   // Generator Options
   const [genLength, setGenLength] = useState<number>(16)
@@ -255,35 +205,15 @@ export default function PasswordAnalyzer(): JSX.Element {
   const [genUseNumbers, setGenUseNumbers] = useState<boolean>(true)
   const [genUseSymbols, setGenUseSymbols] = useState<boolean>(true)
   const [genMode, setGenMode] = useState<GenerationMode>("random")
+  const [genCount, setGenCount] = useState<number>(6)
 
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  // Analysis timeout ref
   const analysisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // State Management for Analysis
-  const analysisReducer = (state: AnalysisState, action: AnalysisAction): AnalysisState => {
-    switch (action.type) {
-      case "ANALYZE_START":
-        return { ...state, status: "loading" }
-      case "ANALYZE_SUCCESS":
-        return {
-          status: "success",
-          analysis: action.payload.analysis,
-          pwnedCount: action.payload.pwnedCount,
-        }
-      case "ANALYZE_ERROR":
-        return { status: "error", error: action.payload.error }
-      case "RESET":
-        return { status: "idle" }
-      default:
-        return state
-    }
-  }
-  const [analysisState, dispatch] = useReducer(analysisReducer, { status: "idle" })
-
-  // Secure Password Generation
+  // Password Generation
   const generateSecurePassword = useCallback(async (): Promise<string> => {
-    if (genMode === "passphrase") {
-      const words: string[] = [
+    const wordLists = {
+      passphrase: [
         "correct",
         "horse",
         "battery",
@@ -316,16 +246,71 @@ export default function PasswordAnalyzer(): JSX.Element {
         "dream",
         "vision",
         "hope",
-      ]
+        "crystal",
+        "shadow",
+        "whisper",
+        "ember",
+        "frost",
+        "storm",
+        "blade",
+        "shield",
+      ],
+      memorable: [
+        "Apple",
+        "Banana",
+        "Cherry",
+        "Dragon",
+        "Eagle",
+        "Forest",
+        "Guitar",
+        "Harbor",
+        "Island",
+        "Jungle",
+        "Kitten",
+        "Lemon",
+        "Mountain",
+        "Ninja",
+        "Ocean",
+        "Piano",
+      ],
+    }
+
+    if (genMode === "passphrase") {
+      const words = wordLists.passphrase
       const passphrase: string[] = []
       const randomValues = new Uint32Array(4)
       crypto.getRandomValues(randomValues)
       for (let i = 0; i < 4; i++) {
         passphrase.push(words[randomValues[i] % words.length])
       }
-      return passphrase.join("-")
+      const separator = genUseSymbols ? ["-", "_", ".", "+"][Math.floor(Math.random() * 4)] : "-"
+      let result = passphrase.join(separator)
+      if (genUseNumbers) {
+        const numbers = crypto.getRandomValues(new Uint32Array(1))[0] % 9999
+        result += numbers.toString().padStart(4, "0")
+      }
+      return result
     }
 
+    if (genMode === "memorable") {
+      const words = wordLists.memorable
+      const randomValues = new Uint32Array(3)
+      crypto.getRandomValues(randomValues)
+      let result = ""
+      for (let i = 0; i < 3; i++) {
+        result += words[randomValues[i] % words.length]
+      }
+      if (genUseNumbers) {
+        result += (crypto.getRandomValues(new Uint32Array(1))[0] % 99).toString().padStart(2, "0")
+      }
+      if (genUseSymbols) {
+        const symbols = "!@#$%^&*"
+        result += symbols[crypto.getRandomValues(new Uint32Array(1))[0] % symbols.length]
+      }
+      return result
+    }
+
+    // Random mode
     const charsets = {
       lowercase: "abcdefghijklmnopqrstuvwxyz",
       uppercase: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -360,7 +345,6 @@ export default function PasswordAnalyzer(): JSX.Element {
     )
 
     const result = [...guaranteedChars, ...randomChars]
-
     // Fisher-Yates shuffle
     for (let i = result.length - 1; i > 0; i--) {
       const j = crypto.getRandomValues(new Uint32Array(1))[0] % (i + 1)
@@ -372,28 +356,32 @@ export default function PasswordAnalyzer(): JSX.Element {
 
   // Generate batch of passwords
   const generatePasswords = useCallback(async (): Promise<void> => {
-    const promises = Array.from({ length: 6 }, () => generateSecurePassword())
-    const newPasswords = await Promise.all(promises)
+    setIsAnalyzing(true)
+    try {
+      const promises = Array.from({ length: genCount }, () => generateSecurePassword())
+      const newPasswords = await Promise.all(promises)
+      const analyzedPasswords: GeneratedPassword[] = newPasswords.map((pwd) => {
+        const analysis = analyzePassword(pwd)
+        const config = STRENGTH_CONFIG[analysis.score]
+        return {
+          password: pwd,
+          analysis,
+          timestamp: Date.now(),
+          id: crypto.getRandomValues(new Uint32Array(1))[0].toString(36),
+          strength: config.strength,
+          score: analysis.score,
+          category: genMode,
+        }
+      })
+      setGeneratedPasswords(analyzedPasswords)
+    } catch (error) {
+      console.error("Failed to generate passwords:", error)
+    } finally {
+      setIsAnalyzing(false)
+    }
+  }, [generateSecurePassword, genCount, genMode])
 
-    const analyzedPasswords: GeneratedPassword[] = newPasswords.map((pwd) => {
-      const analysis = analyzePassword(pwd)
-      const config = STRENGTH_CONFIG[analysis.score]
-      return {
-        password: pwd,
-        analysis,
-        timestamp: Date.now(),
-        id: crypto.getRandomValues(new Uint32Array(1))[0].toString(36),
-        strength: config.strength,
-        score: analysis.score,
-      }
-    })
-    setGeneratedPasswords(analyzedPasswords)
-    // Auto-select the strongest password for analysis
-    const strongest = analyzedPasswords.reduce((prev, current) => (current.score > prev.score ? current : prev))
-    setPassword(strongest.password)
-  }, [generateSecurePassword])
-
-  // Clipboard functionality
+  // Copy to clipboard
   const copyToClipboard = useCallback((text: string, id: string): void => {
     navigator.clipboard
       .writeText(text)
@@ -401,674 +389,451 @@ export default function PasswordAnalyzer(): JSX.Element {
         setCopiedId(id)
         setTimeout(() => setCopiedId(null), 2000)
       })
-      .catch((err) => console.error("Copy failed:", err))
+      .catch(() => console.error("Failed to copy"))
   }, [])
 
-  // Save to history
-  const saveToHistory = useCallback((pwd: string, analysis: ZxcvbnResult): void => {
-    if (!analysis) return
-
-    // Simple hash for privacy
-    const hashArray = Array.from(new TextEncoder().encode(pwd))
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("")
-      .substring(0, 12)
-
-    const newEntry: PasswordHistoryEntry = {
-      passwordHash: hashHex,
-      score: analysis.score,
-      timestamp: Date.now(),
-      strength: STRENGTH_CONFIG[analysis.score].strength,
-      entropy: Math.round(analysis.entropy),
-    }
-    setPasswordHistory((prev) => [newEntry, ...prev.slice(0, 49)])
-  }, [])
-
-  // Visualization
-  const drawPasswordVisualization = useCallback((): void => {
-    const canvas = canvasRef.current
-    if (!canvas || analysisState.status !== "success" || !analysisState.analysis) return
-
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-
-    const { score, entropy } = analysisState.analysis
-    const pwned = (analysisState.pwnedCount ?? 0) > 0
-
-    const width = 280
-    const height = 280
-    canvas.width = width * 2
-    canvas.height = height * 2
-    canvas.style.width = `${width}px`
-    canvas.style.height = `${height}px`
-    ctx.scale(2, 2)
-
-    const centerX = width / 2
-    const centerY = height / 2
-    const radius = Math.min(centerX, centerY) - 40
-
-    ctx.clearRect(0, 0, width, height)
-
-    const metrics: MetricPoint[] = [
-      { label: "Strength", value: (score + 1) / 5, color: "#10b981" },
-      { label: "Entropy", value: Math.min(entropy, 100) / 100, color: "#3b82f6" },
-      { label: "Length", value: Math.min(password.length, 32) / 32, color: "#8b5cf6" },
-      { label: "Safety", value: pwned ? 0.1 : 1.0, color: "#f59e0b" },
-      { label: "Unique", value: new Set(password).size / Math.min(password.length, 20), color: "#06b6d4" },
-    ]
-
-    const numMetrics = metrics.length
-    const angleStep = (2 * Math.PI) / numMetrics
-
-    // Draw grid
-    ctx.strokeStyle = "#1f2937"
-    ctx.lineWidth = 1
-    for (let i = 1; i <= 4; i++) {
-      const r = radius * (i / 4)
-      ctx.beginPath()
-      for (let j = 0; j < numMetrics; j++) {
-        const angle = j * angleStep - Math.PI / 2
-        const x = centerX + r * Math.cos(angle)
-        const y = centerY + r * Math.sin(angle)
-        if (j === 0) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
-      }
-      ctx.closePath()
-      ctx.stroke()
-    }
-
-    // Draw axes and labels
-    ctx.font = "11px ui-monospace, monospace"
-    ctx.fillStyle = "#9ca3af"
-    ctx.textAlign = "center"
-    ctx.textBaseline = "middle"
-    for (let i = 0; i < numMetrics; i++) {
-      const angle = i * angleStep - Math.PI / 2
-      const labelRadius = radius + 20
-      const x = centerX + labelRadius * Math.cos(angle)
-      const y = centerY + labelRadius * Math.sin(angle)
-      ctx.fillText(metrics[i].label, x, y)
-    }
-
-    // Draw data polygon
-    ctx.beginPath()
-    metrics.forEach((metric, i) => {
-      const r = radius * metric.value
-      const angle = i * angleStep - Math.PI / 2
-      const x = centerX + r * Math.cos(angle)
-      const y = centerY + r * Math.sin(angle)
-      if (i === 0) ctx.moveTo(x, y)
-      else ctx.lineTo(x, y)
-    })
-    ctx.closePath()
-    ctx.fillStyle = "rgba(16, 185, 129, 0.2)"
-    ctx.fill()
-    ctx.strokeStyle = "#10b981"
-    ctx.lineWidth = 2
-    ctx.stroke()
-
-    // Draw data points
-    metrics.forEach((metric, i) => {
-      const r = radius * metric.value
-      const angle = i * angleStep - Math.PI / 2
-      const x = centerX + r * Math.cos(angle)
-      const y = centerY + r * Math.sin(angle)
-      ctx.beginPath()
-      ctx.arc(x, y, 4, 0, 2 * Math.PI)
-      ctx.fillStyle = metric.color
-      ctx.fill()
-    })
-  }, [analysisState, password])
-
-  // Debounced password analysis
+  // Password analysis with debouncing
   useEffect(() => {
     if (analysisTimeoutRef.current) clearTimeout(analysisTimeoutRef.current)
-
-    if (!password) {
-      dispatch({ type: "RESET" })
+    // Reset states when password is empty
+    if (!password || password.trim() === "") {
+      setPwnedCount(null)
+      setPwnedLoading(false)
       return
     }
 
-    dispatch({ type: "ANALYZE_START" })
+    setPwnedLoading(true)
     analysisTimeoutRef.current = setTimeout(async () => {
       try {
-        const analysis = analyzePassword(password)
-        const pwnedCount = await checkPwnedPassword(password)
-        dispatch({
-          type: "ANALYZE_SUCCESS",
-          payload: { analysis, pwnedCount },
-        })
-      } catch (error) {
-        dispatch({
-          type: "ANALYZE_ERROR",
-          payload: { error: error instanceof Error ? error.message : "Analysis failed" },
-        })
+        const count = await checkPwnedPassword(password)
+        setPwnedCount(count)
+      } catch {
+        setPwnedCount(-1)
+      } finally {
+        setPwnedLoading(false)
       }
-    }, 300)
+    }, 500)
 
     return () => {
       if (analysisTimeoutRef.current) clearTimeout(analysisTimeoutRef.current)
     }
   }, [password])
 
-  // Save to history and draw visualization
-  useEffect(() => {
-    if (analysisState.status === "success" && analysisState.analysis && password) {
-      saveToHistory(password, analysisState.analysis)
-      if (visualMode) {
-        drawPasswordVisualization()
+  // Computed values
+  const passwordAnalysis = useMemo(() => {
+    if (!password || password.trim() === "") {
+      return {
+        score: 0,
+        strengthText: "",
+        strengthColor: "text-gray-500",
+        entropy: 0,
+        crackTimeText: "",
+        suggestions: [],
+        strengthDescription: "",
       }
     }
-  }, [analysisState, visualMode, password, saveToHistory, drawPasswordVisualization])
-
-  // Derived state for UI
-  const { score, strengthText, strengthColor, entropy, crackTimeText, suggestions, strengthDescription } =
-    useMemo(() => {
-      if (analysisState.status !== "success" || !analysisState.analysis) {
-        return {
-          score: 0,
-          strengthText: "Enter password",
-          strengthColor: "text-gray-500",
-          entropy: 0,
-          crackTimeText: "-",
-          suggestions: [],
-          strengthDescription: "Awaiting input",
-        }
-      }
-      const { analysis } = analysisState
-      const config = STRENGTH_CONFIG[analysis.score]
-      return {
-        score: analysis.score,
-        strengthText: config.strength,
-        strengthColor: config.color,
-        entropy: Math.round(analysis.entropy),
-        crackTimeText: analysis.crackTimesDisplay.offline_slow_hashing_1e4_per_second,
-        suggestions: analysis.feedback.warning
-          ? [analysis.feedback.warning, ...analysis.feedback.suggestions]
-          : analysis.feedback.suggestions,
-        strengthDescription: config.description,
-      }
-    }, [analysisState])
+    const analysis = analyzePassword(password)
+    const config = STRENGTH_CONFIG[analysis.score]
+    return {
+      score: analysis.score,
+      strengthText: config.strength,
+      strengthColor: config.color,
+      entropy: Math.round(analysis.entropy),
+      crackTimeText: analysis.crackTimesDisplay.offline_slow_hashing_1e4_per_second,
+      suggestions: analysis.feedback.warning
+        ? [analysis.feedback.warning, ...analysis.feedback.suggestions]
+        : analysis.feedback.suggestions,
+      strengthDescription: config.description,
+    }
+  }, [password])
 
   const pwnedStatus = useMemo(() => {
-    if (analysisState.status === "loading") {
+    if (!password || password.trim() === "") {
       return {
-        text: "Checking...",
-        color: "text-gray-400",
+        text: "",
+        color: "text-gray-500",
+        icon: null,
+      }
+    }
+    if (pwnedLoading) {
+      return {
+        text: "CHECKING...",
+        color: "text-yellow-400",
         icon: <RiLoader4Line className="animate-spin" />,
       }
     }
-    if (analysisState.status === "error" || analysisState.pwnedCount === undefined) {
+    if (pwnedCount === null || pwnedCount === -1) {
       return {
-        text: "Check failed",
-        color: "text-yellow-400",
+        text: "CHECK FAILED",
+        color: "text-gray-400",
         icon: <RiAlertLine />,
       }
     }
-    if (analysisState.pwnedCount > 0) {
+    if (pwnedCount > 0) {
       return {
-        text: `Breached ${analysisState.pwnedCount.toLocaleString()}×`,
+        text: `BREACHED ${pwnedCount.toLocaleString()}×`,
         color: "text-red-400",
         icon: <RiAlertLine />,
       }
     }
     return {
-      text: "Secure",
-      color: "text-emerald-400",
+      text: "SECURE",
+      color: "text-green-400",
       icon: <RiShieldCheckLine />,
     }
-  }, [analysisState])
-
-  // Event handlers
-  const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
-    setPassword(e.target.value)
-  }, [])
-
-  const handleShowPasswordToggle = useCallback((): void => {
-    setShowPassword((prev) => !prev)
-  }, [])
-
-  const handleTabChange = useCallback((tab: TabType): void => {
-    setActiveTab(tab)
-  }, [])
-
-  const handleVisualModeToggle = useCallback((): void => {
-    setVisualMode((prev) => !prev)
-  }, [])
-
-  const handleGeneratorConfigToggle = useCallback((): void => {
-    setShowGeneratorConfig((prev) => !prev)
-  }, [])
-
-  const handleGenModeChange = useCallback((mode: GenerationMode): void => {
-    setGenMode(mode)
-  }, [])
-
-  const handleGenLengthChange = useCallback((e: React.ChangeEvent<HTMLInputElement>): void => {
-    setGenLength(Number(e.target.value))
-  }, [])
-
-  const handlePasswordSelect = useCallback((pwd: string): void => {
-    setPassword(pwd)
-    setActiveTab("analyze") // Switch to analyze tab when a generated password is selected
-  }, [])
+  }, [pwnedCount, pwnedLoading, password])
 
   return (
-    <div className="min-h-screen bg-black text-gray-100">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        {/* Header */}
-        <header className="text-center mb-8 lg:mb-12">
-          <div className="inline-flex items-center space-x-3 bg-gray-950 border border-gray-800 rounded-full px-6 py-3 mb-6">
-            <RiTerminalLine className="w-5 h-5 text-emerald-400" />
-            <span className="font-mono text-sm text-emerald-400 font-medium">Advanced Passcode Analysis</span>
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-mono font-bold text-white mb-4 tracking-tight">
-            ZeroLeaks<span className="text-emerald-400"> Console</span>
-          </h1>
-          <p className="max-w-2xl mx-auto text-lg text-gray-400 mb-8">
-            Military-grade passcode analysis with real-time breach detection and quantum-resistant generation
-          </p>
-          {/* Navigation Tabs */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-gray-950 border border-gray-800 rounded-lg p-1 inline-flex">
-              {[
-                { id: "analyze" as const, label: "Analyze", icon: RiShieldCheckLine },
-                { id: "generate" as const, label: "Generate", icon: RiKeyLine },
-                { id: "history" as const, label: "History", icon: RiHistoryLine },
-              ].map(({ id, label, icon: Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => handleTabChange(id)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                    activeTab === id
-                      ? "bg-emerald-600 text-white shadow-lg"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{label}</span>
-                </button>
-              ))}
+    <div className="min-h-screen bg-black text-green-400 font-mono">
+      {/* Terminal Header */}
+      <div className="border-b border-green-800/30">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <RiTerminalLine className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
+              <h1 className="text-sm sm:text-lg md:text-xl font-bold truncate">ZEROSEC PASSWORD GENERATOR v2.0</h1>
+            </div>
+            <div className="flex space-x-1 sm:space-x-2 flex-shrink-0">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
             </div>
           </div>
-        </header>
+        </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-          {/* Primary Panel */}
-          <div className="xl:col-span-2 space-y-6">
-            {activeTab === "analyze" && (
-              <>
-                {/* Password Input */}
-                <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                  <div className="flex items-center space-x-3 mb-4">
-                    <RiShieldCheckLine className="w-5 h-5 text-emerald-400" />
-                    <h2 className="text-xl font-semibold text-white">Security Analysis</h2>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8">
+        {/* Password Input & Analysis */}
+        <div className="rounded-lg p-3 sm:p-4 md:p-6">
+          <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+            <span className="text-green-400 text-sm sm:text-base">$</span>
+            <span className="text-cyan-400 text-sm sm:text-base">analyze</span>
+            <span className="text-gray-500 text-xs sm:text-sm">--password</span>
+          </div>
+
+          <div className="relative mb-4 sm:mb-6">
+            <InputMotion
+              key="password-input"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
+              placeholder="Enter password for security analysis..."
+              autoComplete="off"
+              spellCheck="false"
+              initial={{ scale: 1 }}
+              whileFocus={{ scale: 1.02 }}
+              transition={{
+                type: "spring",
+                stiffness: 120,
+                damping: 15,
+              }}
+              className="w-full bg-[#131313] rounded-xl hover:rounded-3xl px-3 sm:px-4 py-3 sm:py-4 pr-10 sm:pr-12 text-sm sm:text-base text-green-300 placeholder-gray-600 focus:outline-none focus:rounded-full focus:border-green-400 transition-all duration-700 ease-in-out"
+            />
+            <button
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-400 transition-colors p-1"
+            >
+              {showPassword ? (
+                <RiEyeOffLine className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <RiEyeLine className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
+          </div>
+
+          {password && password.trim() !== "" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+              {/* Strength Analysis */}
+              <div className="bg-black/30 rounded p-3 sm:p-4">
+                <div className="text-xs text-gray-100 mb-2">STRENGTH ANALYSIS</div>
+                <div className={`text-base sm:text-lg font-bold ${passwordAnalysis.strengthColor} mb-1`}>
+                  {passwordAnalysis.strengthText}
+                </div>
+                <div className="text-xs sm:text-sm text-red-500 font-bold mb-2 sm:mb-3">
+                  {passwordAnalysis.strengthDescription}
+                </div>
+                <div className="space-y-1 sm:space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-100">SCORE:</span>
+                    <span className="text-green-100">{passwordAnalysis.score}/4</span>
                   </div>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={handlePasswordChange}
-                      placeholder="Enter your password for comprehensive analysis..."
-                      className="w-full bg-black border border-gray-700 rounded-lg px-4 py-4 pr-12 text-lg text-emerald-300 placeholder-gray-600 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-mono"
-                      autoComplete="off"
-                      spellCheck="false"
-                    />
-                    <button
-                      onClick={handleShowPasswordToggle}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-2 rounded-md hover:bg-gray-800 transition-colors"
-                      aria-label="Toggle password visibility"
-                    >
-                      {showPassword ? <RiEyeOffLine size={20} /> : <RiEyeLine size={20} />}
-                    </button>
+                  <div className="flex justify-between">
+                    <span className="text-gray-100">ENTROPY:</span>
+                    <span className="text-green-100">{passwordAnalysis.entropy} bits</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-white">LENGTH:</span>
+                    <span className="text-white">{password.length} chars</span>
                   </div>
                 </div>
+              </div>
 
-                {password && (
+              {/* Breach Status */}
+              <div className="bg-black/30 rounded p-3 sm:p-4">
+                <div className="text-xs text-yellow-500 mb-2">BREACH STATUS</div>
+                {pwnedStatus.text && (
                   <>
-                    {/* Strength Overview */}
-                    <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                        <div>
-                          <h3 className={`text-3xl font-bold ${strengthColor} mb-1`}>{strengthText}</h3>
-                          <p className="text-gray-400">{strengthDescription}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-400 mb-1">Crack Time</p>
-                          <p className="text-xl font-semibold text-white">{crackTimeText}</p>
-                        </div>
-                      </div>
-                      <div className="w-full bg-gray-800 rounded-full h-3 mb-4">
-                        <div
-                          className={`h-3 rounded-full transition-all duration-700 ${STRENGTH_CONFIG[score]?.bgColor.replace("/20", "")}`}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="bg-black rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-white mb-1">{score}/4</div>
-                          <div className="text-xs text-gray-400">Score</div>
-                        </div>
-                        <div className="bg-black rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-white mb-1">{entropy}</div>
-                          <div className="text-xs text-gray-400">Entropy</div>
-                        </div>
-                        <div className="bg-black rounded-lg p-3 text-center">
-                          <div className="text-2xl font-bold text-white mb-1">{password.length}</div>
-                          <div className="text-xs text-gray-400">Length</div>
-                        </div>
-                        <div className="bg-black rounded-lg p-3 text-center">
-                          <div
-                            className={`text-2xl font-bold mb-1 ${pwnedStatus.color} flex items-center justify-center`}
-                          >
-                            {pwnedStatus.icon}
-                          </div>
-                          <div className="text-xs text-gray-400">{pwnedStatus.text}</div>
-                        </div>
-                      </div>
+                    <div className={`flex items-center space-x-2 ${pwnedStatus.color} mb-2 sm:mb-3`}>
+                      {pwnedStatus.icon}
+                      <span className="font-bold text-xs sm:text-sm animate-pulse break-all">{pwnedStatus.text}</span>
                     </div>
-
-                    {/* Detailed Analysis */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Recommendations */}
-                      <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                        <div className="flex items-center space-x-3 mb-4">
-                          <RiPassValidLine className="w-5 h-5 text-emerald-400" />
-                          <h3 className="text-lg font-semibold text-white">Recommendations</h3>
-                        </div>
-                        {suggestions.length > 0 ? (
-                          <ul className="space-y-3">
-                            {suggestions.map((suggestion, i) => (
-                              <li key={i} className="flex items-start space-x-3">
-                                <RiFlashlightLine className="w-4 h-4 text-yellow-400 mt-1 flex-shrink-0" />
-                                <span className="text-gray-300 text-sm">{suggestion}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="flex items-center space-x-3 text-emerald-400">
-                            <RiCheckLine className="w-5 h-5" />
-                            <span>Excellent security posture!</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Visual Analysis */}
-                      <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <RiBarChartLine className="w-5 h-5 text-emerald-400" />
-                            <h3 className="text-lg font-semibold text-white">Security Radar</h3>
-                          </div>
-                          <button
-                            onClick={handleVisualModeToggle}
-                            className={`px-3 py-1 rounded-md text-sm transition-colors ${
-                              visualMode ? "bg-emerald-600 text-white" : "bg-gray-800 text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            {visualMode ? "Hide" : "Show"}
-                          </button>
-                        </div>
-                        {visualMode ? (
-                          <div className="flex justify-center">
-                            <canvas ref={canvasRef} className="max-w-full" />
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 text-gray-500">
-                            <RiBarChartLine className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                            <p>Enable visual mode to see security metrics</p>
-                          </div>
-                        )}
-                      </div>
+                    <div className="text-xs text-red-500">
+                      {pwnedCount === 0
+                        ? "Password not found in known breaches"
+                        : pwnedCount && pwnedCount > 0
+                          ? "This password has been compromised"
+                          : "Unable to verify breach status"}
                     </div>
                   </>
                 )}
-              </>
-            )}
+              </div>
 
-            {activeTab === "generate" && (
-              <div className="space-y-6">
-                {/* Generator Controls */}
-                <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center space-x-3">
-                      <RiKeyLine className="w-5 h-5 text-emerald-400" />
-                      <h2 className="text-xl font-semibold text-white">Password Generator</h2>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        title="Toggle generator settings"
-                        onClick={handleGeneratorConfigToggle}
-                        className={`p-2 rounded-md transition-colors ${
-                          showGeneratorConfig
-                            ? "bg-emerald-600 text-white"
-                            : "bg-gray-800 text-gray-400 hover:text-white"
-                        }`}
-                      >
-                        <RiSettings3Line className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={generatePasswords}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md transition-colors flex items-center space-x-2"
-                      >
-                        <RiRefreshLine className="w-4 h-4" />
-                        <span>Generate</span>
-                      </button>
-                    </div>
-                  </div>
-                  {showGeneratorConfig && (
-                    <div className="bg-black rounded-lg p-4 mb-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <label className="font-medium text-white">Generation Mode</label>
-                        <div className="flex bg-gray-800 rounded-lg p-1">
-                          <button
-                            onClick={() => handleGenModeChange("random")}
-                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                              genMode === "random" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            <RiCpuLine className="inline mr-1 w-3 h-3" /> Random
-                          </button>
-                          <button
-                            onClick={() => handleGenModeChange("passphrase")}
-                            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-                              genMode === "passphrase" ? "bg-emerald-600 text-white" : "text-gray-400 hover:text-white"
-                            }`}
-                          >
-                            <RiArticleLine className="inline mr-1 w-3 h-3" /> Passphrase
-                          </button>
-                        </div>
-                      </div>
-                      {genMode === "random" && (
-                        <>
-                          <div className="space-y-2">
-                            <div className="flex justify-between">
-                              <label className="font-medium text-white">Length</label>
-                              <span className="text-emerald-400 font-mono">{genLength}</span>
-                            </div>
-                            <input
-                              title="Adjust password length"
-                              type="range"
-                              min="8"
-                              max="64"
-                              value={genLength}
-                              onChange={handleGenLengthChange}
-                              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {[
-                              {
-                                key: "genUseUppercase",
-                                label: "Uppercase",
-                                value: genUseUppercase,
-                                setter: setGenUseUppercase,
-                              },
-                              {
-                                key: "genUseNumbers",
-                                label: "Numbers",
-                                value: genUseNumbers,
-                                setter: setGenUseNumbers,
-                              },
-                              {
-                                key: "genUseSymbols",
-                                label: "Symbols",
-                                value: genUseSymbols,
-                                setter: setGenUseSymbols,
-                              },
-                            ].map(({ key, label, value, setter }) => (
-                              <label key={key} className="flex items-center space-x-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={value}
-                                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setter(e.target.checked)}
-                                  className="w-4 h-4 text-emerald-600 bg-gray-800 border-gray-600 rounded focus:ring-emerald-500"
-                                />
-                                <span className="text-gray-300 text-sm">{label}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
+              {/* Crack Time */}
+              <div className="bg-black/30 rounded p-3 sm:p-4 md:col-span-2 xl:col-span-1">
+                <div className="text-xs text-yellow-400 mb-2">CRACK TIME</div>
+                <div className="text-base sm:text-lg font-bold text-cyan-100 mb-1 break-all">
+                  {passwordAnalysis.crackTimeText}
                 </div>
-
-                {/* Generated Passwords */}
-                <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Generated Passwords</h3>
-                  <div className="space-y-3">
-                    {generatedPasswords.map(({ password: pwd, id, strength, score }) => (
-                      <div key={id} className="bg-black rounded-lg p-4 flex items-center justify-between">
-                        <div className="flex-1 min-w-0 mr-4">
-                          <div className="font-mono text-emerald-300 text-sm sm:text-base break-all mb-1">{pwd}</div>
-                          <div className="flex items-center space-x-4">
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${STRENGTH_CONFIG[score]?.bgColor} ${STRENGTH_CONFIG[score]?.color}`}
-                            >
-                              {strength}
-                            </span>
-                            <span className="text-xs text-gray-500">{pwd.length} chars</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handlePasswordSelect(pwd)}
-                            className="p-2 text-gray-400 hover:text-emerald-400 transition-colors"
-                            title="Analyze this password"
-                          >
-                            <FaCableCar className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => copyToClipboard(pwd, id)}
-                            className="p-2 text-gray-400 hover:text-white transition-colors"
-                            title="Copy to clipboard"
-                          >
-                            {copiedId === id ? (
-                              <RiCheckLine className="w-4 h-4 text-emerald-400" />
-                            ) : (
-                              <RiFileCopyLine className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                <div className="text-xs text-gray-100 mb-2 sm:mb-3">Offline slow hashing</div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">UNIQUE:</span>
+                    <span className="text-green-400">{new Set(password).size}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">CHARSET:</span>
+                    <span className="text-green-400">
+                      {
+                        [
+                          /[a-z]/.test(password) && "a-z",
+                          /[A-Z]/.test(password) && "A-Z",
+                          /[0-9]/.test(password) && "0-9",
+                          /[^a-zA-Z0-9]/.test(password) && "sym",
+                        ].filter(Boolean).length
+                      }
+                    </span>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === "history" && (
-              <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center space-x-3 mb-6">
-                  <RiHistoryLine className="w-5 h-5 text-emerald-400" />
-                  <h2 className="text-xl font-semibold text-white">Analysis History</h2>
-                  <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full text-xs">
-                    {passwordHistory.length}
-                  </span>
+          {/* Suggestions */}
+          {password && passwordAnalysis.suggestions.length > 0 && (
+            <div className="mt-4 sm:mt-6 bg-yellow-900/20 border border-yellow-600/30 rounded p-3 sm:p-4">
+              <div className="text-xs text-yellow-400 mb-2">SECURITY RECOMMENDATIONS</div>
+              <div className="space-y-1">
+                {passwordAnalysis.suggestions.map((suggestion, index) => (
+                  <div key={index} className="flex items-start space-x-2 text-xs">
+                    <span className="text-yellow-400 mt-0.5 flex-shrink-0">•</span>
+                    <span className="text-gray-300">{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Password Generator */}
+        <div className="rounded-lg p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="text-base sm:text-lg text-cyan-400">$~generate/:</span>
+              <span className="text-white text-sm sm:text-base">Select mode to generate</span>
+            </div>
+            <button
+              onClick={generatePasswords}
+              disabled={isAnalyzing}
+              className="px-3 sm:px-4 py-2 bg-yellow-500 text-black rounded-full font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer text-sm sm:text-base min-w-0"
+            >
+              {isAnalyzing ? (
+                <RiLoader4Line className="w-4 h-4 animate-spin flex-shrink-0" />
+              ) : (
+                <RiRefreshLine className="w-4 h-4 flex-shrink-0" />
+              )}
+              <span className="truncate">GENERATE ({genCount})</span>
+            </button>
+          </div>
+
+          {/* Generation Mode Selection */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+            {[
+              {
+                mode: "random" as GenerationMode,
+                title: "RANDOM",
+                icon: RiCpuLine,
+                desc: "Cryptographically secure",
+              },
+              {
+                mode: "passphrase" as GenerationMode,
+                title: "PASSPHRASE",
+                icon: RiArticleLine,
+                desc: "Easy to remember",
+              },
+              {
+                mode: "memorable" as GenerationMode,
+                title: "MEMORABLE",
+                icon: RiStarLine,
+                desc: "Balanced approach",
+              },
+            ].map(({ mode, title, icon: Icon, desc }) => (
+              <button
+                key={mode}
+                onClick={() => setGenMode(mode)}
+                className={`p-3 rounded text-left transition-all ${
+                  genMode === mode
+                    ? "text-yellow-500 rounded-xl border-2 sm:border-3 border-yellow-500"
+                    : "text-white rounded-lg hover:bg-gray-900/30"
+                }`}
+              >
+                <Icon className="w-4 h-4 sm:w-5 sm:h-5 mb-2" />
+                <div className="font-bold text-xs sm:text-sm">{title}</div>
+                <div className="text-xs opacity-80">{desc}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Generator Options */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+            <div className="space-y-3 sm:space-y-4">
+              <div>
+                <label className="block text-xs sm:text-sm text-gray-100 mb-2">No of Passwords : {genCount}</label>
+                <input
+                  title="Number of passwords to generate"
+                  type="range"
+                  min="1"
+                  max="20"
+                  value={genCount}
+                  onChange={(e) => setGenCount(Number(e.target.value))}
+                  className="w-full h-1 bg-white rounded appearance-none cursor-pointer accent-green-500"
+                />
+              </div>
+              {genMode === "random" && (
+                <div>
+                  <label className="block text-xs sm:text-sm text-gray-100 mb-2">Length of Password: {genLength}</label>
+                  <input
+                    title="Length of each generated password"
+                    type="range"
+                    min="8"
+                    max="64"
+                    value={genLength}
+                    onChange={(e) => setGenLength(Number(e.target.value))}
+                    className="w-full h-1 bg-white rounded appearance-none cursor-pointer accent-blue-500"
+                  />
                 </div>
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {passwordHistory.length > 0 ? (
-                    passwordHistory.map((entry, i) => (
-                      <div key={i} className="bg-black rounded-lg p-4 flex items-center justify-between">
-                        <div className="flex-1">
-                          <div className="font-mono text-sm text-gray-500 mb-1">Hash: {entry.passwordHash}...</div>
-                          <div className="text-xs text-gray-600">{new Date(entry.timestamp).toLocaleString()}</div>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <div className="text-right">
-                            <div className="text-sm text-gray-400">{entry.entropy} bits</div>
-                          </div>
-                          <span
-                            className={`px-3 py-1 text-xs font-medium rounded-full ${STRENGTH_CONFIG[entry.score]?.bgColor} ${STRENGTH_CONFIG[entry.score]?.color}`}
-                          >
-                            {entry.strength}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-12 text-gray-500">
-                      <RiDatabaseLine className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No analysis history yet</p>
-                      <p className="text-sm">Start analyzing passwords to build your history</p>
-                    </div>
-                  )}
-                </div>
+              )}
+            </div>
+            {genMode === "random" && (
+              <div className="space-y-2 sm:space-y-3">
+                <div className="text-xs sm:text-sm text-gray-100 mb-2">CHARACTER SETS</div>
+                {[
+                  {
+                    key: "uppercase",
+                    label: "UPPERCASE (A-Z)",
+                    value: genUseUppercase,
+                    setter: setGenUseUppercase,
+                  },
+                  {
+                    key: "numbers",
+                    label: "NUMBERS (0-9)",
+                    value: genUseNumbers,
+                    setter: setGenUseNumbers,
+                  },
+                  {
+                    key: "symbols",
+                    label: "SYMBOLS (!@#$)",
+                    value: genUseSymbols,
+                    setter: setGenUseSymbols,
+                  },
+                ].map(({ key, label, value, setter }) => (
+                  <label key={key} className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={value}
+                      onChange={(e) => setter(e.target.checked)}
+                      className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500 flex-shrink-0"
+                    />
+                    <span className="text-gray-300 text-xs">{label}</span>
+                  </label>
+                ))}
               </div>
             )}
           </div>
+        </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <RiShieldStarLine className="w-5 h-5 text-emerald-400 mr-2" />
-                Security Overview
-              </h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Passwords Analyzed</span>
-                  <span className="text-white font-semibold">{passwordHistory.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Generated Today</span>
-                  <span className="text-white font-semibold">{generatedPasswords.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Current Strength</span>
-                  <span className={`font-semibold ${strengthColor}`}>{strengthText}</span>
-                </div>
-              </div>
+        {/* Generated Passwords */}
+        {generatedPasswords.length > 0 && (
+          <div className="rounded-lg p-3 sm:p-4 md:p-6">
+            <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
+              <span className="text-green-400 text-sm sm:text-base">$</span>
+              <span className="text-lg sm:text-xl text-cyan-400">output</span>
             </div>
+            <div className="space-y-2 sm:space-y-3">
+              {generatedPasswords.map(({ password: pwd, id, strength, score, analysis }) => (
+                <div key={id} className="bg-black/30 rounded p-3 sm:p-4 transition-all group">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[#ff9100] text-sm sm:text-base lg:text-lg break-all mb-1 transition-colors font-mono">
+                        {pwd}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs">
+                        <span className={`${STRENGTH_CONFIG[score]?.color} font-semibold`}>{strength}</span>
+                        <span className="text-gray-100 font-semibold">{pwd.length} chars</span>
+                        <span className="font-semibold text-gray-100">{Math.round(analysis.entropy)} bits</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+                      <button
+                        onClick={() => setPassword(pwd)}
+                        className="p-2 text-gray-500 hover:text-cyan-400 transition-colors rounded hover:bg-gray-800"
+                        title="Analyze this password"
+                      >
+                        <RiFlashlightLine className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(pwd, id)}
+                        className="p-2 text-gray-100 hover:text-yellow-500 transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        {copiedId === id ? (
+                          <RiCheckLine className="w-3 h-3 sm:w-4 sm:h-4 text-green-100" />
+                        ) : (
+                          <RiFileCopyLine className="w-3 h-3 sm:w-4 sm:h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  {/* Strength Bar */}
+                  <div className="w-full bg-gray-800 rounded-full h-1">
+                    <div
+                      className={`h-1 rounded-full transition-all duration-500 ${
+                        score >= 4
+                          ? "bg-green-500"
+                          : score >= 3
+                            ? "bg-cyan-500"
+                            : score >= 2
+                              ? "bg-yellow-500"
+                              : score >= 1
+                                ? "bg-orange-500"
+                                : "bg-red-500"
+                      }`}
+                      style={{ width: `${(score / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-            {/* Security Tips */}
-            <div className="bg-gray-950 border border-gray-800 rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <RiLockLine className="w-5 h-5 text-emerald-400 mr-2" />
-                Security Tips
-              </h3>
-              <div className="space-y-3 text-sm text-gray-400">
-                <div className="flex items-start space-x-2">
-                  <RiCheckLine className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <span>Use unique passwords for each account</span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <RiCheckLine className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <span>Enable two-factor authentication</span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <RiCheckLine className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <span>Consider using a password manager</span>
-                </div>
-                <div className="flex items-start space-x-2">
-                  <RiCheckLine className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                  <span>Regularly update critical passwords</span>
-                </div>
-              </div>
-            </div>
+        {/* Terminal Footer */}
+        <div className="text-center text-xs text-gray-600 border-t border-green-800/20 pt-3 sm:pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-4">
+            <span>ZEROSEC v2.0</span>
+            <span className="hidden sm:inline">•</span>
+            <span>CLIENT-SIDE ENCRYPTION</span>
+            <span className="hidden sm:inline">•</span>
+            <span>NO DATA TRANSMISSION</span>
           </div>
         </div>
       </div>

@@ -106,7 +106,7 @@ const SecureGuide = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100">
+    <div className="min-h-screen bg-black text-gray-100 font-sans">
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Table of Contents */}
@@ -165,7 +165,7 @@ const SecureGuide = () => {
             <FaUserShield className="text-blue-400" />
             Introduction
           </h2>
-          <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+          <div className=" rounded-lg p-6 ">
             <p className="text-gray-300 text-lg leading-relaxed mb-4">
               In today's digital world, your online accounts contain some of your most valuable information. From
               personal photos and messages to financial data and work documents, securing these accounts is crucial for
@@ -196,7 +196,7 @@ const SecureGuide = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-green-300 flex items-center gap-2">
                 <FaCheck className="text-green-400" />
                 Strong Password Characteristics
@@ -229,7 +229,7 @@ const SecureGuide = () => {
               </ul>
             </div>
 
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-red-300 flex items-center gap-2">
                 <FaTimes className="text-red-400" />
                 Weak Password Examples
@@ -238,25 +238,25 @@ const SecureGuide = () => {
                 <li className="flex items-start gap-2">
                   <FaTimes className="text-red-400 mt-1 flex-shrink-0 text-sm" />
                   <span>
-                    <code className="bg-gray-800 px-2 py-1 rounded">password123</code> - Too common
+                    <code className=" px-2 py-1 rounded">password123</code> - Too common
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <FaTimes className="text-red-400 mt-1 flex-shrink-0 text-sm" />
                   <span>
-                    <code className="bg-gray-800 px-2 py-1 rounded">john1985</code> - Personal info
+                    <code className=" px-2 py-1 rounded">john1985</code> - Personal info
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <FaTimes className="text-red-400 mt-1 flex-shrink-0 text-sm" />
                   <span>
-                    <code className="bg-gray-800 px-2 py-1 rounded">qwerty</code> - Keyboard pattern
+                    <code className=" px-2 py-1 rounded">qwerty</code> - Keyboard pattern
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <FaTimes className="text-red-400 mt-1 flex-shrink-0 text-sm" />
                   <span>
-                    <code className="bg-gray-800 px-2 py-1 rounded">Password</code> - Too simple
+                    <code className=" px-2 py-1 rounded">Password</code> - Too simple
                   </span>
                 </li>
               </ul>
@@ -271,7 +271,7 @@ const SecureGuide = () => {
             Understanding Password Entropy
           </h2>
 
-          <div className="bg-[#212121] rounded-lg p-6 border border-gray-800 mb-6">
+          <div className=" rounded-lg p-6  mb-6">
             <h3 className="text-xl font-semibold mb-4 text-purple-300">What is Entropy?</h3>
             <p className="text-gray-300 mb-4 leading-relaxed">
               Password entropy measures the randomness and unpredictability of a password. Higher entropy means a
@@ -279,15 +279,15 @@ const SecureGuide = () => {
               set size and password length.
             </p>
 
-            <div className="bg-purple-900/20 border border-purple-800 rounded-lg p-4 mb-4">
+            <div className=" rounded-lg p-4 mb-4">
               <h4 className="font-semibold text-purple-300 mb-2">Entropy Formula</h4>
-              <code className="text-purple-200 bg-gray-800 px-3 py-2 rounded block">
+              <code className="text-purple-200  px-3 py-2 rounded block">
                 Entropy = log₂(Character Set Size^Password Length)
               </code>
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <h4 className="font-semibold text-gray-200 mb-2">Character Sets</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
                   <li>Lowercase: 26 chars</li>
@@ -300,7 +300,7 @@ const SecureGuide = () => {
                 </ul>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <h4 className="font-semibold text-gray-200 mb-2">Entropy Levels</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
                   <li>{"<"} 30 bits: Very Weak</li>
@@ -310,7 +310,7 @@ const SecureGuide = () => {
                 </ul>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <h4 className="font-semibold text-gray-200 mb-2">Time to Crack</h4>
                 <ul className="text-sm text-gray-300 space-y-1">
                   <li>40 bits: Minutes</li>
@@ -330,7 +330,7 @@ const SecureGuide = () => {
             Password Generator
           </h2>
 
-          <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+          <div className=" rounded-lg p-6 ">
             <div className="mb-6">
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <button
@@ -353,7 +353,7 @@ const SecureGuide = () => {
               </div>
 
               {generatedPassword && (
-                <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                <div className=" rounded-lg p-4 border border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
                     <FaKey className="text-yellow-400" />
                     <span className="font-medium text-gray-200">Generated Password:</span>
@@ -397,7 +397,7 @@ const SecureGuide = () => {
           </h2>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-indigo-300">Password Managers</h3>
               <p className="text-gray-300 mb-4">
                 Password managers are essential tools that generate, store, and autofill strong, unique passwords for
@@ -428,7 +428,7 @@ const SecureGuide = () => {
               </div>
             </div>
 
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-indigo-300">Best Practices</h3>
 
               <div className="space-y-4">
@@ -475,7 +475,7 @@ const SecureGuide = () => {
             Two-Factor Authentication (2FA)
           </h2>
 
-          <div className="bg-[#212121] rounded-lg p-6 border border-gray-800 mb-6">
+          <div className=" rounded-lg p-6  mb-6">
             <p className="text-gray-300 text-lg mb-6 leading-relaxed">
               Two-Factor Authentication adds an extra layer of security by requiring a second form of verification
               beyond your password. Even if someone steals your password, they still can't access your account without
@@ -483,7 +483,7 @@ const SecureGuide = () => {
             </p>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <FaMobile className="text-cyan-400" />
                   <h3 className="font-semibold text-cyan-300">SMS/Text</h3>
@@ -494,7 +494,7 @@ const SecureGuide = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <FaFingerprint className="text-cyan-400" />
                   <h3 className="font-semibold text-cyan-300">Authenticator Apps</h3>
@@ -505,7 +505,7 @@ const SecureGuide = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-4">
+              <div className=" rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <FaKey className="text-cyan-400" />
                   <h3 className="font-semibold text-cyan-300">Hardware Keys</h3>
@@ -539,7 +539,7 @@ const SecureGuide = () => {
 
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="space-y-6">
-              <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+              <div className=" rounded-lg p-6 ">
                 <h3 className="text-xl font-semibold mb-4 text-emerald-300 flex items-center gap-2">
                   <FaEnvelope className="text-emerald-400" />
                   Email Security
@@ -552,7 +552,7 @@ const SecureGuide = () => {
                 </ul>
               </div>
 
-              <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+              <div className=" rounded-lg p-6 ">
                 <h3 className="text-xl font-semibold mb-4 text-emerald-300 flex items-center gap-2">
                   <FaWifi className="text-emerald-400" />
                   Network Security
@@ -567,7 +567,7 @@ const SecureGuide = () => {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+              <div className=" rounded-lg p-6 ">
                 <h3 className="text-xl font-semibold mb-4 text-emerald-300 flex items-center gap-2">
                   <FaLock className="text-emerald-400" />
                   Device Security
@@ -580,7 +580,7 @@ const SecureGuide = () => {
                 </ul>
               </div>
 
-              <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+              <div className=" rounded-lg p-6 ">
                 <h3 className="text-xl font-semibold mb-4 text-emerald-300 flex items-center gap-2">
                   <FaBug className="text-emerald-400" />
                   Social Engineering
@@ -604,7 +604,7 @@ const SecureGuide = () => {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-red-300">Phishing Attacks</h3>
               <p className="text-gray-300 mb-4">
                 Fraudulent attempts to steal credentials through fake websites or emails that mimic legitimate services.
@@ -620,7 +620,7 @@ const SecureGuide = () => {
               </div>
             </div>
 
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-red-300">Data Breaches</h3>
               <p className="text-gray-300 mb-4">
                 When companies' databases are compromised, exposing user passwords and personal information to
@@ -637,7 +637,7 @@ const SecureGuide = () => {
               </div>
             </div>
 
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-red-300">Brute Force Attacks</h3>
               <p className="text-gray-300 mb-4">
                 Automated attempts to guess passwords by trying millions of combinations until the correct one is found.
@@ -653,7 +653,7 @@ const SecureGuide = () => {
               </div>
             </div>
 
-            <div className="bg-[#212121] rounded-lg p-6 border border-gray-800">
+            <div className=" rounded-lg p-6 ">
               <h3 className="text-xl font-semibold mb-4 text-red-300">Social Engineering</h3>
               <p className="text-gray-300 mb-4">
                 Psychological manipulation to trick people into revealing confidential information or performing actions
@@ -673,7 +673,7 @@ const SecureGuide = () => {
         </section>
 
         {/* Footer */}
-        <footer className="bg-[#212121] rounded-lg p-6 border border-gray-800 text-center">
+        <footer className=" rounded-lg p-6  text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <FaShieldAlt className="text-blue-400" />
             <span className="font-semibold text-white">Stay Secure</span>

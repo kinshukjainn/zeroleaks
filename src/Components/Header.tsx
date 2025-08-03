@@ -9,6 +9,8 @@ const navLinks = [
   { href: "/about", label: "About" },
 ]
 
+
+
 const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [currentRoute, setCurrentRoute] = useState("/")
@@ -30,7 +32,7 @@ const Header: React.FC = () => {
           <div className="bg-white p-1 rounded">
             <PiNumberZeroBold className="text-black w-5 h-5" />
           </div>
-          <span className="font-bold text-lg">ZeroLeaks</span>
+          <span className="font-semibold font-mono text-2xl">ZeroLeaks</span>
         </a>
 
         {/* Desktop Nav */}
