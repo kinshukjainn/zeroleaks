@@ -106,6 +106,13 @@ Your password is hashed with SHA-1 and only the first 5 characters of the hash a
 
 ---
 
+
+### Docker command for pulling the image of the project :
+
+```Bash
+docker pull kinshukdev/zeroleaksproduct:latest
+```
+
 ## 🖥️ Development
 
 ### 📦 Install dependencies
