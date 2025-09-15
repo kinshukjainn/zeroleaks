@@ -1,6 +1,6 @@
 ## 📜 Overview
 
-**ZeroLeaks** is a highly secure, fully client-side password analysis and generation tool designed for developers, security researchers, and privacy-conscious users. It combines cryptographic best practices, entropy-based analysis, and data breach intelligence from [HaveIBeenPwned](https://haveibeenpwned.com/API/v3#PwnedPasswords) to help users understand and improve their password hygiene.
+**ZeroLeaks** is a highly secure, fully client-side password analysis and generation tool designed for developers, security researchers, and privacy-conscious users. It combines cryptographic best practices, entropy-based analysis, and data breach intelligence  to help users understand and improve their password hygiene.
 
 Built with modern technologies including **React 19**, **TypeScript**, **TailwindCSS**, and **Vite**, it features a sleek, responsive UI, deep security insights, and real-time visualizations.
 
@@ -105,6 +105,13 @@ Your password is hashed with SHA-1 and only the first 5 characters of the hash a
 * **Full anonymity**
 
 ---
+
+
+### Docker command for pulling the image of the project :
+
+```Bash
+docker pull kinshukdev/zeroleaksproduct:latest
+```
 
 ## 🖥️ Development
 
