@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useEffect } from "react"
 import { FaGithub, FaTwitter, FaBars, FaTimes } from "react-icons/fa"
 import { PiNumberZeroBold } from "react-icons/pi"
@@ -25,14 +23,14 @@ const Header: React.FC = () => {
   const isActive = (href: string) => currentRoute === href
 
   return (
-    <header className="bg-black  text-white sticky top-0 z-50">
+    <header className="bg-neutral-900  text-white sticky top-0 z-50">
       <div className="max-w-6xl mx-auto flex justify-between items-center h-16 px-4">
         {/* Logo */}
         <a href="/" className="flex items-center space-x-2">
           <div className="bg-white p-1 rounded">
             <PiNumberZeroBold className="text-black w-5 h-5" />
           </div>
-          <span className="font-semibold font-mono text-2xl">ZeroLeaks</span>
+          <span className="font-semibold  text-2xl">ZeroLeaks</span>
         </a>
 
         {/* Desktop Nav */}
@@ -42,7 +40,7 @@ const Header: React.FC = () => {
               key={href}
               href={href}
               className={`px-3 py-1 rounded transition-colors duration-150 ${
-                isActive(href) ? "bg-blue-600/30" : "hover:bg-gray-700"
+                isActive(href) ? "bg-blue-600" : "hover:bg-gray-700"
               }`}
             >
               {label}
@@ -68,7 +66,7 @@ const Header: React.FC = () => {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-black border-t border-gray-800 px-4 py-3 space-y-3">
+        <div className="md:hidden bg-neutral-950 px-4 py-3 space-y-3">
           {navLinks.map(({ href, label }) => (
             <a
               key={href}
@@ -81,7 +79,8 @@ const Header: React.FC = () => {
               {label}
             </a>
           ))}
-          <div className="flex space-x-4 pt-2 border-t border-gray-700">
+          <div className="flex space-x-2 pt-2 bg-[#171717] p-2 align-items items-center rounded border border-[#444444]">
+            <h1 className ="font-semibold">Social Links : </h1>
             <a href="#" title="GitHub" className="hover:text-blue-400">
               <FaGithub />
             </a>

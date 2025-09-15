@@ -14,8 +14,11 @@ import {
   RiArticleLine,
   RiStarLine,
   RiFlashlightLine,
+  RiLockLine,
+  RiKeyLine,
+  RiShieldLine,
 } from "react-icons/ri"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 // Types
 interface ZxcvbnResult {
@@ -54,7 +57,7 @@ const STRENGTH_CONFIG: Record<number, { strength: string; color: string; descrip
   },
   3: {
     strength: "STRONG",
-    color: "text-cyan-400",
+    color: "text-red-500",
     description: "Enterprise-grade protection",
   },
   2: {
@@ -197,7 +200,6 @@ export default function TerminalPasswordGenerator() {
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false)
   const [pwnedCount, setPwnedCount] = useState<number | null>(null)
   const [pwnedLoading, setPwnedLoading] = useState<boolean>(false)
-  const InputMotion = motion.input
 
   // Generator Options
   const [genLength, setGenLength] = useState<number>(16)
@@ -484,220 +486,309 @@ export default function TerminalPasswordGenerator() {
   }, [pwnedCount, pwnedLoading, password])
 
   return (
-    <div className="min-h-screen bg-black text-green-400 font-mono">
-      {/* Terminal Header */}
-      <div className="border-b border-green-800/30">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+    <div className="min-h-screen  bg-neutral-900">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="  bg-neutral-900"
+      >
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-              <RiTerminalLine className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
-              <h1 className="text-sm sm:text-lg md:text-xl font-bold truncate">ZEROSEC PASSWORD GENERATOR v2.0</h1>
-            </div>
-            <div className="flex space-x-1 sm:space-x-2 flex-shrink-0">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
-            </div>
+            <motion.div
+              className="flex items-center space-x-3 min-w-0 flex-1"
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <div className="relative bg-[#252525] p-2 rounded-md border-2 border-[#444444] ">
+                <RiTerminalLine className="w-6 h-6 sm:w-7 sm:h-7 text-white  drop-shadow-lg" />
+                <div className="absolute inset-0 w-6 h-6 sm:w-7 sm:h-7 text-white animate-pulse opacity-30" />
+              </div>
+              <div className="flex flex-col">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-semibold text-white">
+                 CONSOLE
+                </h1>
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8 space-y-6 sm:space-y-8">
-        {/* Password Input & Analysis */}
-        <div className="rounded-lg p-3 sm:p-4 md:p-6">
-          <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-            <span className="text-green-400 text-sm sm:text-base">$</span>
-            <span className="text-cyan-400 text-sm sm:text-base">analyze</span>
-            <span className="text-gray-500 text-xs sm:text-sm">--password</span>
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-10 space-y-8 sm:space-y-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className=" bg-[#222222] border border-[#444444] rounded p-4 sm:p-6 md:p-8 shadow-2xl"
+        >
+          <div className="flex items-center space-x-3 mb-6">
+            <RiShieldLine className="w-6 h-6 text-white" />
+            <span className="text-xl sm:text-2xl font-semibold text-white">Security Analysis</span>
+            <div className="flex-1 h-1 bg-gradient-to-r from-white rounded-full to-transparent" />
           </div>
 
-          <div className="relative mb-4 sm:mb-6">
-            <InputMotion
+          <div className="relative mb-6">
+            <motion.input
               key="password-input"
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
-              placeholder="Enter password for security analysis..."
+              placeholder="Enter password for comprehensive security analysis..."
               autoComplete="off"
               spellCheck="false"
-              initial={{ scale: 1 }}
-              whileFocus={{ scale: 1.02 }}
+              whileFocus={{
+                scale: 1.01,
+                boxShadow: "0 0 0 3px rgba(34, 197, 94, 0.2), 0 0 20px rgba(34, 197, 94, 0.1)",
+              }}
               transition={{
                 type: "spring",
-                stiffness: 120,
-                damping: 15,
+                stiffness: 300,
+                damping: 20,
               }}
-              className="w-full bg-[#131313] rounded-xl hover:rounded-3xl px-3 sm:px-4 py-3 sm:py-4 pr-10 sm:pr-12 text-sm sm:text-base text-green-300 placeholder-gray-600 focus:outline-none focus:rounded-full focus:border-green-400 transition-all duration-700 ease-in-out"
+              className="w-full bg-[#303030] rounded px-2 py-1 border-2 border-[#444444] pr-12 text-md text-white placeholder-slate-400 transition-all duration-300"
             />
-            <button
+            <motion.button
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-400 transition-colors p-1"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white transition-colors p-1 rounded-md hover:bg-[#181818]"
             >
-              {showPassword ? (
-                <RiEyeOffLine className="w-4 h-4 sm:w-5 sm:h-5" />
-              ) : (
-                <RiEyeLine className="w-4 h-4 sm:w-5 sm:h-5" />
-              )}
-            </button>
+              {showPassword ? <RiEyeOffLine className="w-5 h-5" /> : <RiEyeLine className="w-5 h-5" />}
+            </motion.button>
           </div>
 
-          {password && password.trim() !== "" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-              {/* Strength Analysis */}
-              <div className="bg-black/30 rounded p-3 sm:p-4">
-                <div className="text-xs text-gray-100 mb-2">STRENGTH ANALYSIS</div>
-                <div className={`text-base sm:text-lg font-bold ${passwordAnalysis.strengthColor} mb-1`}>
-                  {passwordAnalysis.strengthText}
-                </div>
-                <div className="text-xs sm:text-sm text-red-500 font-bold mb-2 sm:mb-3">
-                  {passwordAnalysis.strengthDescription}
-                </div>
-                <div className="space-y-1 sm:space-y-2 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-100">SCORE:</span>
-                    <span className="text-green-100">{passwordAnalysis.score}/4</span>
+          <AnimatePresence>
+            {password && password.trim() !== "" && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+              >
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="bg-[#303030]  border border-[#444444] rounded-md p-4 sm:p-5 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-2 mb-3">
+                    <RiShieldCheckLine className="w-4 h-4 text-white" />
+                    <div className="text-sm font-bold text-white tracking-wider">STRENGTH ANALYSIS</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-100">ENTROPY:</span>
-                    <span className="text-green-100">{passwordAnalysis.entropy} bits</span>
+                  <div className={`text-xl font-semibold ${passwordAnalysis.strengthColor} mb-2 tracking-wide`}>
+                    {passwordAnalysis.strengthText}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-white">LENGTH:</span>
-                    <span className="text-white">{password.length} chars</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Breach Status */}
-              <div className="bg-black/30 rounded p-3 sm:p-4">
-                <div className="text-xs text-yellow-500 mb-2">BREACH STATUS</div>
-                {pwnedStatus.text && (
-                  <>
-                    <div className={`flex items-center space-x-2 ${pwnedStatus.color} mb-2 sm:mb-3`}>
-                      {pwnedStatus.icon}
-                      <span className="font-bold text-xs sm:text-sm animate-pulse break-all">{pwnedStatus.text}</span>
+                  <div className="text-sm text-slate-100 mb-4">{passwordAnalysis.strengthDescription}</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-white">Score:</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-white border-[#444444]">{passwordAnalysis.score}/4</span>
+                        <div className="flex space-x-1">
+                          {[...Array(4)].map((_, i) => (
+                            <div
+                              key={i}
+                              className={`w-2 h-2 rounded-md transition-all duration-300 ${
+                                i < passwordAnalysis.score ? "bg-emerald-400 shadow-sm" : "bg-slate-600"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-red-500">
-                      {pwnedCount === 0
-                        ? "Password not found in known breaches"
-                        : pwnedCount && pwnedCount > 0
-                          ? "This password has been compromised"
-                          : "Unable to verify breach status"}
+                    <div className="flex justify-between">
+                      <span className="text-white">Entropy:</span>
+                      <span className="text-white border-[#444444]">{passwordAnalysis.entropy} bits</span>
                     </div>
-                  </>
-                )}
-              </div>
+                    <div className="flex justify-between">
+                      <span className="text-white">Length:</span>
+                      <span className="text-white border-[#444444]">{password.length} chars</span>
+                    </div>
+                  </div>
+                </motion.div>
 
-              {/* Crack Time */}
-              <div className="bg-black/30 rounded p-3 sm:p-4 md:col-span-2 xl:col-span-1">
-                <div className="text-xs text-yellow-400 mb-2">CRACK TIME</div>
-                <div className="text-base sm:text-lg font-bold text-cyan-100 mb-1 break-all">
-                  {passwordAnalysis.crackTimeText}
+                <motion.div
+                  initial={{ opacity: 0, x: 0, y: 20 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="bg-[#303030] border border-[#444444] rounded p-4 sm:p-5  transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-2 mb-3">
+                    <RiAlertLine className="w-4 h-4 text-amber-400" />
+                    <div className="text-sm font-semibold text-white tracking-wider">BREACH STATUS</div>
+                  </div>
+                  {pwnedStatus.text && (
+                    <>
+                      <div className={`flex items-center space-x-2 ${pwnedStatus.color} mb-3`}>
+                        <motion.div
+                          animate={pwnedLoading ? { rotate: 360 } : {}}
+                          transition={{
+                            duration: 1,
+                            repeat: pwnedLoading ? Number.POSITIVE_INFINITY : 0,
+                            ease: "linear",
+                          }}
+                        >
+                          {pwnedStatus.icon}
+                        </motion.div>
+                        <span className="font-bold text-lg tracking-wide">{pwnedStatus.text}</span>
+                      </div>
+                      <div className="text-sm text-slate-300">
+                        {pwnedCount === 0
+                          ? "✓ Password not found in known data breaches"
+                          : pwnedCount && pwnedCount > 0
+                            ? "⚠ This password has been compromised in data breaches"
+                            : "? Unable to verify breach status"}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="bg-[#303030] backdrop-blur-sm border border-[#444444] rounded p-2 sm:p-5  transition-all duration-300 md:col-span-2 xl:col-span-1"
+                >
+                  <div className="flex items-center space-x-2 mb-3">
+                    <RiKeyLine className="w-4 h-4 text-white" />
+                    <div className="text-xs font-semibold text-white tracking-wider">CRACK TIME</div>
+                  </div>
+                  <div className="text-xl font-bold text-white mb-2 border-[#444444]">{passwordAnalysis.crackTimeText}</div>
+                  <div className="text-sm text-white mb-4">Offline slow hashing (10K/sec)</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-white">Unique chars:</span>
+                      <span className="text-white border-[#444444]">{new Set(password).size}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white">Character sets:</span>
+                      <span className="text-white border-[#444444]">
+                        {
+                          [
+                            /[a-z]/.test(password) && "a-z",
+                            /[A-Z]/.test(password) && "A-Z",
+                            /[0-9]/.test(password) && "0-9",
+                            /[^a-zA-Z0-9]/.test(password) && "sym",
+                          ].filter(Boolean).length
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {password && passwordAnalysis.suggestions.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+                className="mt-6 bg-[#303030] border border-[#444444] rounded-lg p-4 sm:p-5 backdrop-blur-sm"
+              >
+                <div className="flex items-center space-x-2 mb-3">
+                  <RiAlertLine className="w-4 h-4 text-amber-400" />
+                  <div className="text-sm font-semibold text-amber-400 tracking-wider">SECURITY RECOMMENDATIONS</div>
                 </div>
-                <div className="text-xs text-gray-100 mb-2 sm:mb-3">Offline slow hashing</div>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">UNIQUE:</span>
-                    <span className="text-green-400">{new Set(password).size}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">CHARSET:</span>
-                    <span className="text-green-400">
-                      {
-                        [
-                          /[a-z]/.test(password) && "a-z",
-                          /[A-Z]/.test(password) && "A-Z",
-                          /[0-9]/.test(password) && "0-9",
-                          /[^a-zA-Z0-9]/.test(password) && "sym",
-                        ].filter(Boolean).length
-                      }
-                    </span>
-                  </div>
+                <div className="space-y-2">
+                  {passwordAnalysis.suggestions.map((suggestion, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                      className="flex items-start space-x-3 text-sm"
+                    >
+                      <span className="text-amber-400 mt-1 flex-shrink-0">•</span>
+                      <span className="text-slate-300">{suggestion}</span>
+                    </motion.div>
+                  ))}
                 </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
-          {/* Suggestions */}
-          {password && passwordAnalysis.suggestions.length > 0 && (
-            <div className="mt-4 sm:mt-6 bg-yellow-900/20 border border-yellow-600/30 rounded p-3 sm:p-4">
-              <div className="text-xs text-yellow-400 mb-2">SECURITY RECOMMENDATIONS</div>
-              <div className="space-y-1">
-                {passwordAnalysis.suggestions.map((suggestion, index) => (
-                  <div key={index} className="flex items-start space-x-2 text-xs">
-                    <span className="text-yellow-400 mt-0.5 flex-shrink-0">•</span>
-                    <span className="text-gray-300">{suggestion}</span>
-                  </div>
-                ))}
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="backdrop-blur-sm bg-[#252525] border border-[#444444] rounded p-4 sm:p-6 md:p-8 "
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center space-x-3">
+              <RiLockLine className="w-6 h-6 text-white" />
+              <span className="text-xl sm:text-2xl font-semibold text-white">Password Generator</span>
+              <div className="flex-1 h-1 rounded-full bg-gradient-to-r from-white to-transparent" />
             </div>
-          )}
-        </div>
-
-        {/* Password Generator */}
-        <div className="rounded-lg p-3 sm:p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <span className="text-base sm:text-lg text-cyan-400">$~generate/:</span>
-              <span className="text-white text-sm sm:text-base">Select mode to generate</span>
-            </div>
-            <button
+            <motion.button
               onClick={generatePasswords}
               disabled={isAnalyzing}
-              className="px-3 sm:px-4 py-2 bg-yellow-500 text-black rounded-full font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 cursor-pointer text-sm sm:text-base min-w-0"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-6 py-3 bg-[#303030] text-white rounded-md border-[#444444] font-semibold transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg"
             >
-              {isAnalyzing ? (
-                <RiLoader4Line className="w-4 h-4 animate-spin flex-shrink-0" />
-              ) : (
-                <RiRefreshLine className="w-4 h-4 flex-shrink-0" />
-              )}
-              <span className="truncate">GENERATE ({genCount})</span>
-            </button>
+              <motion.div
+                animate={isAnalyzing ? { rotate: 360 } : {}}
+                transition={{ duration: 1, repeat: isAnalyzing ? Number.POSITIVE_INFINITY : 0, ease: "linear" }}
+              >
+                {isAnalyzing ? <RiLoader4Line className="w-5 h-5" /> : <RiRefreshLine className="w-5 h-5" />}
+              </motion.div>
+              <span>GENERATE ({genCount})</span>
+            </motion.button>
           </div>
 
-          {/* Generation Mode Selection */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             {[
               {
                 mode: "random" as GenerationMode,
                 title: "RANDOM",
                 icon: RiCpuLine,
                 desc: "Cryptographically secure",
+                gradient: "from-black to-gray-90",
               },
               {
                 mode: "passphrase" as GenerationMode,
                 title: "PASSPHRASE",
                 icon: RiArticleLine,
                 desc: "Easy to remember",
+                gradient: "from-black to-gray-90",
               },
               {
                 mode: "memorable" as GenerationMode,
                 title: "MEMORABLE",
                 icon: RiStarLine,
                 desc: "Balanced approach",
+                gradient: "from-black to-gray-90",
               },
-            ].map(({ mode, title, icon: Icon, desc }) => (
-              <button
+            ].map(({ mode, title, icon: Icon, desc, gradient }) => (
+              <motion.button
                 key={mode}
                 onClick={() => setGenMode(mode)}
-                className={`p-3 rounded text-left transition-all ${
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                className={`p-4 rounded-lg text-left transition-all duration-300 border-2 ${
                   genMode === mode
-                    ? "text-yellow-500 rounded-xl border-2 sm:border-3 border-yellow-500"
-                    : "text-white rounded-lg hover:bg-gray-900/30"
+                    ? `bg-gradient-to-br ${gradient} border-white/30 shadow-lg`
+                    : "bg-slate-900/40 border-slate-600/50 hover:border-slate-500/70 hover:bg-slate-800/60"
                 }`}
               >
-                <Icon className="w-4 h-4 sm:w-5 sm:h-5 mb-2" />
-                <div className="font-bold text-xs sm:text-sm">{title}</div>
-                <div className="text-xs opacity-80">{desc}</div>
-              </button>
+                <Icon className="w-6 h-6 mb-3 text-white" />
+                <div className="font-bold text-sm text-white mb-1">{title}</div>
+                <div className="text-xs text-slate-300">{desc}</div>
+              </motion.button>
             ))}
           </div>
 
-          {/* Generator Options */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
             <div className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block text-xs sm:text-sm text-gray-100 mb-2">No of Passwords : {genCount}</label>
+                <label className="block text-sm font-medium sm:text-md text-whitre mb-2">
+                  No of Passwords : {genCount}
+                </label>
                 <input
                   title="Number of passwords to generate"
                   type="range"
@@ -705,12 +796,14 @@ export default function TerminalPasswordGenerator() {
                   max="20"
                   value={genCount}
                   onChange={(e) => setGenCount(Number(e.target.value))}
-                  className="w-full h-1 bg-white rounded appearance-none cursor-pointer accent-green-500"
+                  className="w-full h-2 bg-white  rounded-full  cursor-pointer accent-blue-500"
                 />
               </div>
               {genMode === "random" && (
                 <div>
-                  <label className="block text-xs sm:text-sm text-gray-100 mb-2">Length of Password: {genLength}</label>
+                  <label className="block text-xs sm:text-sm text-white mb-2">
+                    Length of Password: {genLength}
+                  </label>
                   <input
                     title="Length of each generated password"
                     type="range"
@@ -718,14 +811,14 @@ export default function TerminalPasswordGenerator() {
                     max="64"
                     value={genLength}
                     onChange={(e) => setGenLength(Number(e.target.value))}
-                    className="w-full h-1 bg-white rounded appearance-none cursor-pointer accent-blue-500"
+                    className="w-full h-2 bg-white rounded-full cursor-pointer accent-blue-500"
                   />
                 </div>
               )}
             </div>
             {genMode === "random" && (
               <div className="space-y-2 sm:space-y-3">
-                <div className="text-xs sm:text-sm text-gray-100 mb-2">CHARACTER SETS</div>
+                <div className="text-sm font-semibold sm:text-sm text-white mb-2">CHARACTER SETS</div>
                 {[
                   {
                     key: "uppercase",
@@ -751,91 +844,131 @@ export default function TerminalPasswordGenerator() {
                       type="checkbox"
                       checked={value}
                       onChange={(e) => setter(e.target.checked)}
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-green-600 bg-gray-800 border-gray-600 rounded focus:ring-green-500 flex-shrink-0"
+                      className="w-4 h-4 text-white bg-slate-800 border-slate-600 rounded-full  flex-shrink-0"
                     />
-                    <span className="text-gray-300 text-xs">{label}</span>
+                    <span className="text-gray-200 text-sm">{label}</span>
                   </label>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
 
-        {/* Generated Passwords */}
-        {generatedPasswords.length > 0 && (
-          <div className="rounded-lg p-3 sm:p-4 md:p-6">
-            <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
-              <span className="text-green-400 text-sm sm:text-base">$</span>
-              <span className="text-lg sm:text-xl text-cyan-400">output</span>
-            </div>
-            <div className="space-y-2 sm:space-y-3">
-              {generatedPasswords.map(({ password: pwd, id, strength, score, analysis }) => (
-                <div key={id} className="bg-black/30 rounded p-3 sm:p-4 transition-all group">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[#ff9100] text-sm sm:text-base lg:text-lg break-all mb-1 transition-colors font-mono">
-                        {pwd}
+        <AnimatePresence>
+          {generatedPasswords.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="bg-[#252525] rounded p-4 sm:p-6 md:p-8 shadow-2xl"
+            >
+              <div className="flex items-center space-x-3 mb-6">
+                <RiShieldCheckLine className="w-6 h-6 text-white" />
+                <span className="text-xl sm:text-2xl font-semibold text-white">Generated Passwords</span>
+                <div className="flex-1 h-1 bg-gradient-to-r rounded-full from-white to-transparent" />
+              </div>
+              <div className="space-y-3">
+                {generatedPasswords.map(({ password: pwd, id, strength, score, analysis }, index) => (
+                  <motion.div
+                    key={id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.1 }}
+                    whileHover={{ scale: 1.01, y: -2 }}
+                    className="bg-[#303030]  border border-[#444444] rounded p-3 transition-all duration-300"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1 mb-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-white text-lg break-all mb-2 transition-colors">
+                          {pwd}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-sm">
+                          <span
+                            className={`${STRENGTH_CONFIG[score]?.color} font-semibold px-2 py-1 rounded-md bg-[#222222] border border-[#444444]`}
+                          >
+                            {strength}
+                          </span>
+                          <span className="text-white border-[#444444]">{pwd.length} chars</span>
+                          <span className="text-white border-[#444444]">{Math.round(analysis.entropy)} bits</span>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs">
-                        <span className={`${STRENGTH_CONFIG[score]?.color} font-semibold`}>{strength}</span>
-                        <span className="text-gray-100 font-semibold">{pwd.length} chars</span>
-                        <span className="font-semibold text-gray-100">{Math.round(analysis.entropy)} bits</span>
+                      <div className="flex items-center space-x-2 flex-shrink-0">
+                        <motion.button
+                          onClick={() => setPassword(pwd)}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-2 text-white  transition-colors rounded hover:bg-[#181818]"
+                          title="Analyze this password"
+                        >
+                          <RiFlashlightLine className="w-4 h-4" />
+                        </motion.button>
+                        <motion.button
+                          onClick={() => copyToClipboard(pwd, id)}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-2 text-white  hover:bg-[#181818] rounded transition-colors"
+                          title="Copy to clipboard"
+                        >
+                          <AnimatePresence mode="wait">
+                            {copiedId === id ? (
+                              <motion.div key="check" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                                <RiCheckLine className="w-4 h-4 text-white" />
+                              </motion.div>
+                            ) : (
+                              <motion.div key="copy" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                                <RiFileCopyLine className="w-4 h-4 text-yellow-500" />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.button>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
-                      <button
-                        onClick={() => setPassword(pwd)}
-                        className="p-2 text-gray-500 hover:text-cyan-400 transition-colors rounded hover:bg-gray-800"
-                        title="Analyze this password"
-                      >
-                        <RiFlashlightLine className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                      <button
-                        onClick={() => copyToClipboard(pwd, id)}
-                        className="p-2 text-gray-100 hover:text-yellow-500 transition-colors"
-                        title="Copy to clipboard"
-                      >
-                        {copiedId === id ? (
-                          <RiCheckLine className="w-3 h-3 sm:w-4 sm:h-4 text-green-100" />
-                        ) : (
-                          <RiFileCopyLine className="w-3 h-3 sm:w-4 sm:h-4" />
-                        )}
-                      </button>
+                    <div className="w-full bg-white rounded-full h-2 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(score / 4) * 100}%` }}
+                        transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+                        className={`h-2 rounded-full transition-all duration-500 ${
+                          score >= 4
+                            ? "bg-gradient-to-r from-emerald-500 to-green-400"
+                            : score >= 3
+                              ? "bg-gradient-to-r from-cyan-500 to-blue-400"
+                              : score >= 2
+                                ? "bg-gradient-to-r from-yellow-500 to-orange-400"
+                                : score >= 1
+                                  ? "bg-gradient-to-r from-orange-500 to-red-400"
+                                  : "bg-gradient-to-r from-red-500 to-red-600"
+                        }`}
+                      />
                     </div>
-                  </div>
-                  {/* Strength Bar */}
-                  <div className="w-full bg-gray-800 rounded-full h-1">
-                    <div
-                      className={`h-1 rounded-full transition-all duration-500 ${
-                        score >= 4
-                          ? "bg-green-500"
-                          : score >= 3
-                            ? "bg-cyan-500"
-                            : score >= 2
-                              ? "bg-yellow-500"
-                              : score >= 1
-                                ? "bg-orange-500"
-                                : "bg-red-500"
-                      }`}
-                      style={{ width: `${(score / 4) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* Terminal Footer */}
-        <div className="text-center text-xs text-gray-600 border-t border-green-800/20 pt-3 sm:pt-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-1 sm:space-y-0 sm:space-x-4">
-            <span>ZEROSEC v2.0</span>
-            <span className="hidden sm:inline">•</span>
-            <span>CLIENT-SIDE ENCRYPTION</span>
-            <span className="hidden sm:inline">•</span>
-            <span>NO DATA TRANSMISSION</span>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="text-center text-sm text-slate-500 border-t border-slate-700/30 pt-6"
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-6">
+            <span className="border-[#444444]">ZEROSEC v2.1 Enterprise</span>
+            <span className="hidden sm:inline text-slate-600">•</span>
+            <span className="flex items-center space-x-2">
+              <RiShieldCheckLine className="w-4 h-4 text-emerald-500" />
+              <span>CLIENT-SIDE ENCRYPTION</span>
+            </span>
+            <span className="hidden sm:inline text-slate-600">•</span>
+            <span className="flex items-center space-x-2">
+              <RiLockLine className="w-4 h-4 text-blue-500" />
+              <span>ZERO DATA TRANSMISSION</span>
+            </span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   )

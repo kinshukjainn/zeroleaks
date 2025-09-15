@@ -106,7 +106,7 @@ const SecureGuide = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-100 font-sans">
+    <div className="min-h-screen bg-black text-gray-100 ">
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Table of Contents */}
